@@ -14,92 +14,90 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/
       ME_CONFIG_BASICAUTH: false
 
-  seed-a:
+  seed-yadav_consulting:
     build: ./seed-scripts
     volumes:
       - ./resources:/usr/src/app/data    
     depends_on:
       - mongo
-    environment:
-      - MONGO_URI=mongodb://mongo:27017/company-a
-    command: ["npm", "run", "seed-a"]
+    env_file:
+      - ./envs/yadav_consulting.env
+    command: ["npm", "run", "seed-yadav_consulting"]
 
-  seed-b:
+  seed-rozgaar_setu:
     build: ./seed-scripts
     volumes:
       - ./resources:/usr/src/app/data
     depends_on:
       - mongo
-    environment:
-      - MONGO_URI=mongodb://mongo:27017/company-b
-    command: ["npm", "run", "seed-b"]
+    env_file:
+      - ./envs/rozgaar_setu.env
+    command: ["npm", "run", "seed-rozgaar_setu"]
     
-  backend-a:
-    build: ./company/backend
+  backend-yadav_consulting:
+    build: ./backend/yadav_consulting
     ports:
       - 3000:3000
     depends_on:
       - mongo
       - mongo-express
-      - seed-a
-    environment:
-      - PORT=3000
-      - MONGO_URI=mongodb://mongo:27017/company-a
+      - seed-yadav_consulting
+    env_file:
+      - ./envs/yadav_consulting.env
 
-  backend-b:
-    build: ./company/backend
+  backend-rozgaar_setu:
+    build: ./backend/rozgaar_setu
     ports:
       - 4000:4000
     depends_on:
       - mongo
       - mongo-express
-      - seed-b
-    environment:
-      - PORT=4000
-      - MONGO_URI=mongodb://mongo:27017/company-b
+      - seed-rozgaar_setu
+    env_file:
+      - ./envs/rozgaar_setu.env
 
-  transformation-engine:
-    build: ./transformation-engine
-    environment:
-      - MONGO_URI=mongodb://mongo:27017/mcp
-      - OPENAI_API_KEY=OPENAI_API_KEY
-      - COMPANY_A_URL=http://backend-a:3000/api/jobs/search
-      - COMPANY_B_URL=http://backend-b:4000/api/jobs/search
-    depends_on:
-      - mongo
-      - mongo-express
-      - backend-a
-      - backend-b
-    command: ["npm", "run", "dev"]
+  # transformation-engine:
+  #   build: ./transformation-engine
+  #   environment:
+  #     - MONGO_URI=mongodb://mongo:27017/mcp
+  #     - OPENAI_API_KEY=OPENAI_API_KEY
+  #     - COMPANY_A_URL=http://backend-a:3000/api/jobs/search
+  #     - COMPANY_B_URL=http://backend-b:4000/api/jobs/search
+  #   depends_on:
+  #     - mongo
+  #     - mongo-express
+  #     - backend-a
+  #     - backend-b
+  #   command: ["npm", "run", "dev"]
 
-  mcp-backend:
-    build: ./mcp/backend
-    ports:
-      - 6000:6000
-    depends_on:
-      - transformation-engine
-    environment:
-      - PORT=6000
-      - MONGO_URI=mongodb://mongo:27017/mcp
-      - company_a_url=http://backend-a:3000
-      - company_b_url=http://backend-b:4000
+  # mcp-backend:
+  #   build: ./mcp/backend
+  #   ports:
+  #     - 6000:6000
+  #   depends_on:
+  #     - transformation-engine
+  #   environment:
+  #     - PORT=6000
+  #     - MONGO_URI=mongodb://mongo:27017/mcp
+  #     - company_a_url=http://backend-a:3000
+  #     - company_b_url=http://backend-b:4000
 
-  frontend_company_a:
-    build: ./company/frontend/company-a/blue-collar-careers-main
-    container_name: frontend-company-a
-    ports:
-      - 8080:8080
-    environment:
-      - VITE_API_URL=http://localhost:3000/api
-    depends_on:
-      - backend-a
+  # frontend_company_a:
+  #   build: ./company/frontend/company-a/blue-collar-careers-main
+  #   container_name: frontend-company-a
+  #   ports:
+  #     - 8080:8080
+  #   environment:
+  #     - VITE_API_URL=http://localhost:3000/api
+  #   depends_on:
+  #     - backend-a
 
-  frontend_company_b:
-    build: ./company/frontend/company-b/dark-hued-careers-portal
-    container_name: frontend-company-b
-    ports:
-      - 8082:8080
-    environment:
-      - VITE_API_URL=http://localhost:4000/api
-    depends_on:
-      - backend-b
+  # frontend_company_b:
+  #   build: ./company/frontend/company-b/dark-hued-careers-portal
+  #   container_name: frontend-company-b
+  #   ports:
+  #     - 8082:8080
+  #   environment:
+  #     - VITE_API_URL=http://localhost:4000/api
+  #   depends_on:
+  #     - backend-b

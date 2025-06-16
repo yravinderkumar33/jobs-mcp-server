@@ -1,0 +1,417 @@
+openapi: 3.0.0
+info:
+  title: Blue Collar Jobs API
+  description: API for managing blue collar job postings and applications
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+
+paths:
+  /api/jobs/search:
+    post:
+      summary: Search jobs with filters
+      description: Search for jobs using various filters and options
+      operationId: searchJobs
+      tags:
+        - Jobs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                request:
+                  type: object
+                  properties:
+                    filters:
+                      type: object
+                      description: MongoDB-style filters for job search
+                      additionalProperties: true
+                      example:
+                        location: "New York"
+                        jobType: "full-time"
+                        experience: "entry-level"
+                    options:
+                      type: object
+                      description: MongoDB query options (limit, sort, etc.)
+                      additionalProperties: true
+                      example:
+                        limit: 10
+                        sort: { createdAt: -1 }
+            examples:
+              basic_search:
+                summary: Basic job search
+                value:
+                  request:
+                    filters:
+                      location: "New York"
+                      jobType: "full-time"
+                    options:
+                      limit: 20
+      responses:
+        '200':
+          description: Successful job search
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSearchResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/jobs/{job_id}:
+    get:
+      summary: Get job details
+      description: Retrieve detailed information about a specific job
+      operationId: getJobDetails
+      tags:
+        - Jobs
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          description: Unique identifier for the job
+          schema:
+            type: string
+          example: "JOB-123456"
+      responses:
+        '200':
+          description: Job details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobDetailResponse'
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/jobs/{job_id}/apply:
+    post:
+      summary: Apply to a job
+      description: Submit an application for a specific job
+      operationId: applyToJob
+      tags:
+        - Jobs
+        - Applications
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          description: Unique identifier for the job
+          schema:
+            type: string
+          example: "JOB-123456"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobApplicationRequest'
+            examples:
+              basic_application:
+                summary: Basic job application
+                value:
+                  applicant:
+                    full_name: "John Doe"
+                    email: "john.doe@example.com"
+                    phone_number: "+1-555-0123"
+                    experience_years: 5
+                    skills: ["construction", "welding", "safety"]
+      responses:
+        '200':
+          description: Application submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobApplicationResponse'
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/jobs/applications:
+    get:
+      summary: Get all job applications
+      description: Retrieve a list of all job applications
+      operationId: getAllApplications
+      tags:
+        - Applications
+      responses:
+        '200':
+          description: Applications retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationsListResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    BaseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: API endpoint identifier
+        ver:
+          type: string
+          description: API version
+          example: "1.0"
+        ets:
+          type: integer
+          description: Epoch timestamp
+          format: int64
+        params:
+          type: object
+          properties:
+            msgid:
+              type: string
+              description: Unique message identifier
+              format: uuid
+            err:
+              type: string
+              description: Error code (empty for successful responses)
+            status:
+              type: string
+              enum: [SUCCESSFUL, FAILED]
+              description: Request status
+            errmsg:
+              type: string
+              description: Error message (empty for successful responses)
+        responseCode:
+          type: string
+          description: Response code
+          enum: [OK, ERROR, INTERNAL_ERROR, NOT_FOUND]
+      required:
+        - id
+        - ver
+        - ets
+        - params
+        - responseCode
+
+    Job:
+      type: object
+      properties:
+        jobId:
+          type: string
+          description: Unique job identifier
+        title:
+          type: string
+          description: Job title
+        description:
+          type: string
+          description: Job description
+        company:
+          type: string
+          description: Company name
+        location:
+          type: string
+          description: Job location
+        jobType:
+          type: string
+          description: Type of job (full-time, part-time, contract)
+        experience:
+          type: string
+          description: Required experience level
+        salary:
+          type: object
+          description: Salary information
+        requirements:
+          type: array
+          items:
+            type: string
+          description: Job requirements
+        benefits:
+          type: array
+          items:
+            type: string
+          description: Job benefits
+        createdAt:
+          type: string
+          format: date-time
+          description: Job creation timestamp
+        isActive:
+          type: boolean
+          description: Whether the job is currently active
+      additionalProperties: true
+      required:
+        - jobId
+
+    Application:
+      type: object
+      properties:
+        application_id:
+          type: string
+          description: Unique application identifier
+        job_id:
+          type: string
+          description: Job identifier this application is for
+        applicant:
+          type: object
+          description: Applicant information
+          additionalProperties: true
+        submitted_on:
+          type: string
+          format: date-time
+          description: Application submission timestamp
+        status:
+          type: string
+          description: Application status
+          enum: [submitted, under_review, accepted, rejected]
+      additionalProperties: true
+      required:
+        - application_id
+        - job_id
+        - applicant
+
+    JobApplicationRequest:
+      type: object
+      properties:
+        applicant:
+          type: object
+          properties:
+            full_name:
+              type: string
+              description: Full name of the applicant
+            email:
+              type: string
+              format: email
+              description: Email address
+            phone_number:
+              type: string
+              description: Phone number with country code
+            experience_years:
+              type: integer
+              description: Years of experience
+            skills:
+              type: array
+              items:
+                type: string
+              description: List of skills
+            resume_url:
+              type: string
+              format: uri
+              description: URL to resume document
+            cover_letter:
+              type: string
+              description: Cover letter text
+          additionalProperties: true
+          required:
+            - full_name
+            - email
+            - phone_number
+      additionalProperties: true
+      required:
+        - applicant
+
+    JobSearchResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            result:
+              type: object
+              properties:
+                jobs:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Job'
+
+    JobDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            result:
+              type: object
+              properties:
+                job:
+                  $ref: '#/components/schemas/Job'
+
+    JobApplicationResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            result:
+              type: object
+              properties:
+                application:
+                  type: object
+                  properties:
+                    application_id:
+                      type: string
+                      description: Generated application ID
+                    job_id:
+                      type: string
+                      description: Job ID applied to
+                    status:
+                      type: string
+                      description: Application status
+                      example: "submitted"
+                    applied_at:
+                      type: string
+                      format: date-time
+                      description: Application timestamp
+
+    ApplicationsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            result:
+              type: object
+              properties:
+                applications:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Application'
+
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            result:
+              type: object
+              description: Empty result object for error responses
+              additionalProperties: true
+
+tags:
+  - name: Jobs
+    description: Job-related operations
+  - name: Applications
+    description: Application-related operations 

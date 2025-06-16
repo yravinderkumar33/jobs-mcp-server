@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "seed-a": "ts-node src/index.ts company-a.json company-a",
-    "seed-b": "ts-node src/index.ts company-b.json company-b"
+    "seed-yadav_consulting": "ts-node src/index.ts yadav_consulting.json yadav_consulting",
+    "seed-rozgaar_setu": "ts-node src/index.ts rozgaar_setu.json rozgaar_setu"
   },
   "keywords": [],
   "author": "",
