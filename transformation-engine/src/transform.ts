@@ -39,7 +39,7 @@ async function main() {
         console.log('\n🔄 Processing all companies...');
 
         const results = await engine.processAllCompanies();
-        writeResultsToJSONLFile(results, 'output.json');
+        // writeResultsToJSONLFile(results, 'output.json');
     } catch (error) {
         console.error('💥 Fatal error:', error);
         process.exit(1);

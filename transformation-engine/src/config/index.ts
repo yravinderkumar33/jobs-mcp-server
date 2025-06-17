@@ -1,270 +1,16 @@
 const config = {
+  jobCategories: ["TAILOR", "MECHANIC", "PLUMBER", "ELECTRICIAN", "OTHER"],
   companies: [
     {
-      id: "company-a",
+      id: "yadav_consulting",
+      host: process.env.YADAV_CONSULTING_URL || "http://localhost:3000",
       search: {
         api: {
-          url: process.env.COMPANY_A_URL || "http://localhost:3000/api/jobs/search",
-          method: "POST",
+          url: process.env.YADAV_CONSULTING_URL + "/jobs/query",
+          method: "GET",
           headers: {
             "Content-Type": "application/json"
           },
-          data: {
-            "request": {}
-          }
-        },
-        schema: {
-          "$schema": "http://json-schema.org/draft-07/schema#",
-          "title": "Generated schema for Root",
-          "type": "object",
-          "properties": {
-            "_id": {
-              "type": "string"
-            },
-            "jobId": {
-              "type": "string"
-            },
-            "title": {
-              "type": "string"
-            },
-            "description": {
-              "type": "string"
-            },
-            "category": {
-              "type": "string"
-            },
-            "jobType": {
-              "type": "string"
-            },
-            "company": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                },
-                "industry": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "name",
-                "description",
-                "industry"
-              ]
-            },
-            "location": {
-              "type": "object",
-              "properties": {
-                "address": {
-                  "type": "string"
-                },
-                "city": {
-                  "type": "string"
-                },
-                "state": {
-                  "type": "string"
-                },
-                "country": {
-                  "type": "string"
-                },
-                "postalCode": {
-                  "type": "string"
-                },
-                "latitude": {
-                  "type": "number"
-                },
-                "longitude": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "address",
-                "city",
-                "state",
-                "country",
-                "postalCode",
-                "latitude",
-                "longitude"
-              ]
-            },
-            "requirements": {
-              "type": "object",
-              "properties": {
-                "experienceInYears": {
-                  "type": "number"
-                },
-                "gender": {
-                  "type": "string"
-                },
-                "education": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "certifications": {
-                  "type": "array",
-                  "items": {}
-                },
-                "skills": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "languages": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "assetsRequired": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "required": [
-                "experienceInYears",
-                "gender",
-                "education",
-                "certifications",
-                "skills",
-                "languages",
-                "assetsRequired"
-              ]
-            },
-            "responsibilities": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "salary": {
-              "type": "object",
-              "properties": {
-                "amount": {
-                  "type": "number"
-                },
-                "currency": {
-                  "type": "string"
-                },
-                "frequency": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "amount",
-                "currency",
-                "frequency"
-              ]
-            },
-            "schedule": {
-              "type": "object",
-              "properties": {
-                "shiftType": {
-                  "type": "string"
-                },
-                "hoursPerWeek": {
-                  "type": "number"
-                },
-                "daysOfWeek": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "startTime": {
-                  "type": "string"
-                },
-                "endTime": {
-                  "type": "string"
-                },
-                "overtimeAvailable": {
-                  "type": "boolean"
-                },
-                "weekendWork": {
-                  "type": "boolean"
-                }
-              },
-              "required": [
-                "shiftType",
-                "hoursPerWeek",
-                "daysOfWeek",
-                "startTime",
-                "endTime",
-                "overtimeAvailable",
-                "weekendWork"
-              ]
-            },
-            "benefits": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "postedDate": {
-              "type": "string"
-            },
-            "validUntil": {
-              "type": "string"
-            },
-            "metadata": {
-              "type": "object",
-              "properties": {
-                "tags": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "required": [
-                "tags"
-              ]
-            },
-            "__v": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "_id",
-            "jobId",
-            "title",
-            "description",
-            "category",
-            "jobType",
-            "company",
-            "location",
-            "requirements",
-            "responsibilities",
-            "salary",
-            "schedule",
-            "benefits",
-            "postedDate",
-            "validUntil",
-            "metadata",
-            "__v"
-          ]
-        }
-      }
-    },
-    {
-      id: "company-b",
-      search: {
-        api: {
-          url: process.env.COMPANY_B_URL || "http://localhost:4000/api/jobs/search",
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          data: {
-            "request": {}
-          }
         },
         schema: {
           "$schema": "http://json-schema.org/draft-07/schema#",
@@ -529,6 +275,285 @@ const config = {
             "extra",
             "__v"
           ]
+        },
+        extractJobs(response: any) {
+          return response.data.result.jobs || [];
+        }
+      },
+      apply: {
+        api: {
+          url: process.env.YADAV_CONSULTING_URL + "/applications/submit",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      }
+    },
+    {
+      id: "rozgaar_setu",
+      host: process.env.ROZGAAR_SETU_URL || "http://localhost:4000",
+      search: {
+        api: {
+          url: process.env.ROZGAAR_SETU_URL + "/api/jobs/search",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          data: {
+            "filters": {},
+            "options": {}
+          }
+        },
+        schema: {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "title": "Generated schema for Root",
+          "type": "object",
+          "properties": {
+            "_id": {
+              "type": "string"
+            },
+            "jobId": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "category": {
+              "type": "string"
+            },
+            "jobType": {
+              "type": "string"
+            },
+            "company": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "industry": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "description",
+                "industry"
+              ]
+            },
+            "location": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "type": "string"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "country": {
+                  "type": "string"
+                },
+                "postalCode": {
+                  "type": "string"
+                },
+                "latitude": {
+                  "type": "number"
+                },
+                "longitude": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "address",
+                "city",
+                "state",
+                "country",
+                "postalCode",
+                "latitude",
+                "longitude"
+              ]
+            },
+            "requirements": {
+              "type": "object",
+              "properties": {
+                "experienceInYears": {
+                  "type": "number"
+                },
+                "gender": {
+                  "type": "string"
+                },
+                "education": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "certifications": {
+                  "type": "array",
+                  "items": {}
+                },
+                "skills": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "languages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "assetsRequired": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "experienceInYears",
+                "gender",
+                "education",
+                "certifications",
+                "skills",
+                "languages",
+                "assetsRequired"
+              ]
+            },
+            "responsibilities": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "salary": {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "type": "number"
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "frequency": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "amount",
+                "currency",
+                "frequency"
+              ]
+            },
+            "schedule": {
+              "type": "object",
+              "properties": {
+                "shiftType": {
+                  "type": "string"
+                },
+                "hoursPerWeek": {
+                  "type": "number"
+                },
+                "daysOfWeek": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "startTime": {
+                  "type": "string"
+                },
+                "endTime": {
+                  "type": "string"
+                },
+                "overtimeAvailable": {
+                  "type": "boolean"
+                },
+                "weekendWork": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "shiftType",
+                "hoursPerWeek",
+                "daysOfWeek",
+                "startTime",
+                "endTime",
+                "overtimeAvailable",
+                "weekendWork"
+              ]
+            },
+            "benefits": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "postedDate": {
+              "type": "string"
+            },
+            "validUntil": {
+              "type": "string"
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "tags"
+              ]
+            },
+            "__v": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "_id",
+            "jobId",
+            "title",
+            "description",
+            "category",
+            "jobType",
+            "company",
+            "location",
+            "requirements",
+            "responsibilities",
+            "salary",
+            "schedule",
+            "benefits",
+            "postedDate",
+            "validUntil",
+            "metadata",
+            "__v"
+          ]
+        },
+        extractJobs(response: any) {
+          return response.data.result.jobs || [];
+        }
+      },
+      apply: {
+        api: {
+          url: process.env.ROZGAAR_SETU_URL + "/api/jobs/{jobId}/apply",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
         }
       }
     }

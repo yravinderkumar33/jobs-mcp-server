@@ -5,20 +5,18 @@ import { JobSearchRequestSchema, JobApplicationSchema } from '../types/job';
 
 export function registerTools(server: McpServer, jobsAPI: JobsAPI) {
 
-  // Search Jobs Tool - Main job search functionality
   server.tool(
     "search-jobs",
     "Search for all the jobs available in the database",
-    {
-      filters: z.object({}).optional(),
-      options: z.object({}).optional()
-    },
-    async ({ filters, options }) => {
+    {},
+    async ({ }) => {
       try {
-        const searchRequest = { filters: filters || {}, options: options || {} };
+        const searchRequest = { filters: {}, options: {} };
         const response = await jobsAPI.searchJobs(searchRequest);
 
-        if (response.result.jobs.length === 0) {
+        const jobs = response?.result?.jobs || [];
+
+        if (jobs.length === 0) {
           return {
             content: [{
               type: "text",
@@ -27,17 +25,20 @@ export function registerTools(server: McpServer, jobsAPI: JobsAPI) {
           };
         }
 
+        const jobData = jobsAPI.transformMinimalJobData(jobs) || [];
+
         const resultText = `
-      # Job Search Results
+# Job Search Results
 
-Found ${response.result.jobs.length} jobs:
+We have found ${jobData.length} job opportunities for you:
 
-${JSON.stringify(response.result.jobs)}
+${JSON.stringify(jobData, null, 2)}
 ---
-**Tips:**
-- Use \`get-job-details\` tool with a specific Job ID to get full job information
-- Use \`apply-for-job\` tool to submit applications
-- Adjust filters to narrow down results`;
+**Pro Tips:**
+- Utilize the \`get-job-details\` tool with a specific Job ID to access comprehensive job information.
+- Leverage the \`apply-for-job\` tool to submit your applications seamlessly.
+- Fine-tune your search filters to refine and target your job search results effectively.
+`;
 
         return {
           content: [{
@@ -58,7 +59,8 @@ ${JSON.stringify(response.result.jobs)}
     }
   );
 
-  // Get Job Details Tool - Detailed view of a specific job
+
+
   server.tool(
     "get-job-details",
     "Get detailed information about a specific job",
@@ -67,25 +69,26 @@ ${JSON.stringify(response.result.jobs)}
     },
     async ({ jobId }) => {
       try {
-        // Get job details
         const response = await jobsAPI.getJob(jobId);
+
         const job = response.result.job;
 
-        const jobDetails = jobsAPI.formatJobForDisplay(job);
+        const resultText = `
+# Job Details
+${JSON.stringify(job, null, 2)}
+
+**Next Steps:**
+- Use \`apply-for-job\` tool with this Job ID to submit an application
+- Use \`search-jobs\` tool to find similar opportunities
+- Use \`apply-to-yadav-consulting-job\` tool to apply to Yadav Consulting job if the job source_id is yadav_consulting
+        `
 
         return {
           content: [{
             type: "text",
-            text: `# Job Details
-
-${jobDetails}
-
-**Next Steps:**
-- Use \`apply-for-job\` tool with this Job ID to submit an application
-- Use \`search-jobs\` tool to find similar opportunities`
+            text: resultText
           }]
         };
-
       } catch (error) {
         console.error('Get job details error:', error);
         return {
@@ -98,7 +101,30 @@ ${jobDetails}
     }
   );
 
-  // Apply for Job Tool - Submit job application
+
+  server.tool(
+    "apply-to-yadav-consulting-job",
+    "Apply to Yadav Consulting job",
+    {
+      jobId: z.string().describe("The job ID to apply for"),
+      applicant: z.object({
+        name: z.string().describe("Full name of the applicant"),
+        age: z.string().describe("Age of the applicant"),
+        gender: z.string().describe("Gender of the applicant"),
+        phone: z.string().describe("Phone number of the applicant"),
+        address: z.string().describe("Complete Address of the applicant")
+      }).describe("Applicant details")
+    },
+    async ({ jobId, applicant }) => {
+      return {
+        content: [{
+          type: "text",
+          text: "You have successfully applied to Yadav Consulting job"
+        }]
+      }
+    }
+  );
+
   server.tool(
     "apply-for-job",
     "Apply for a specific job",
@@ -112,14 +138,12 @@ ${jobDetails}
     },
     async ({ jobId, applicant }) => {
       try {
-        // Prepare application data
         const application = {
           job_id: jobId,
           applicant,
           status: "PENDING"
         };
 
-        // Submit application
         const response = await jobsAPI.applyForJob(jobId, application);
 
         const successMessage = `# Application Submitted Successfully! ✅

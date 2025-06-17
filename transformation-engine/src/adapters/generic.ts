@@ -2,12 +2,14 @@ import axios from "axios";
 import { BaseJobProviderAdapter } from "./base";
 import { NormalizedJob } from "../models/adapter";
 import { CompanyConfig } from "../models/config";
-import transformationChain from "../runnables";
+import chain from "../runnables";
 import Job from '../models/Job';
 import { connectToMongoDB } from '../utils/mongoConnection';
+import { getJobModel } from "../models/jobFactory";
+import JobToCategoryMappingSchema from "../models/JobToCategoryMapping";
+import { query } from "express";
 
 connectToMongoDB();
-
 export class GenericJobProviderAdapter extends BaseJobProviderAdapter {
     readonly providerId: string;
 
@@ -20,7 +22,7 @@ export class GenericJobProviderAdapter extends BaseJobProviderAdapter {
         try {
             console.log(`📡 Fetching data from ${this.config.name || this.providerId}...`);
             const response = await axios(this.config.search.api);
-            const jobs: any[] = response.data.result.jobs;
+            const jobs: any[] = this.config.search.extractJobs(response);
             return jobs;
         } catch (error) {
             console.error(`❌ Error searching jobs from ${this.config.name || this.providerId}:`, error);
@@ -28,34 +30,73 @@ export class GenericJobProviderAdapter extends BaseJobProviderAdapter {
         }
     }
 
+    async applyToJob(context: any): Promise<any> {
+        try {
+            console.log(context)
+            const { jobId, payload = {} } = context;
+            if (this.providerId === 'yadav_consulting') {
+                const url = this.config.apply.api.url;
+                const response = await axios.get(url, {
+                    params: {
+                        job_id: jobId,
+                        name: payload.name,
+                        age: payload.age,
+                        gender: payload.gender,
+                        phone: payload.phone,
+                        address: payload.address
+                    }
+                });
+                return response.data;
+            } else if (this.providerId === 'rozgaar_setu') {
+                const url = this.config.apply.api.url.replace('{jobId}', jobId);
+                const response = await axios.post(url, {
+                    "applicant": {
+                        "name": payload.name,
+                        "phone": payload.phone,
+                        "email": payload.email
+                    },
+                    "status": "PENDING"
+                });
+                return response.data;
+            }
+
+        } catch (error) {
+            console.error(`❌ Error applying to job from ${this.config.name || this.providerId}:`);
+            throw error;
+        }
+    }
+
+
     async normalizeJob(jobs: Record<string, any>[]): Promise<NormalizedJob[]> {
         const output: NormalizedJob[] = [];
 
         for (const job of jobs) {
             try {
 
-                const transformedJob = await transformationChain.invoke({
+                const chainOutput = await chain.invoke({
                     data: JSON.stringify(job),
                     inputSchema: JSON.stringify(this.config.search.schema),
                     outputSchema: JSON.stringify(this.normalizedSchema || this.config.search.schema)
                 });
 
-                const payload = {
-                    ...JSON.parse(transformedJob),
-                    metadata: {
-                        source_id: this.providerId,
-                        ingested_at: new Date().toISOString(),
-                        original_event: job
-                    }
-                }
+                const jobCategory = chainOutput.category as string;
+                const normalizedJob = chainOutput.job as Record<string, any>;
 
-                console.log(JSON.stringify(payload));
-
-                const jobDocument = new Job(payload);
+                const model = getJobModel(jobCategory);
+                const jobDocument = new model(normalizedJob);
                 await jobDocument.save();
-                console.log('Job saved to MongoDB:', jobDocument);
 
-                output.push(payload);
+                const jobToCategoryMapping = new JobToCategoryMappingSchema({
+                    jobId: jobDocument.jobId,
+                    category: jobCategory,
+                    source_id: this.providerId,
+                    original_event: job
+                });
+
+                await jobToCategoryMapping.save();
+
+                console.log('Job saved to MongoDB:', jobDocument.jobId);
+                output.push(normalizedJob);
             } catch (transformError) {
                 console.error(`⚠️  Error transforming job from ${this.providerId}:`, transformError);
             }

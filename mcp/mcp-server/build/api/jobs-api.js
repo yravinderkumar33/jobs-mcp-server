@@ -106,18 +106,6 @@ ${job.job.benefits.map(b => `• ${b.replace(/_/g, ' ')}`).join('\n')}
 Job ID: ${job.jobId}
 `;
     }
-    /**
-     * Get formatted job summary for lists
-     */
-    formatJobSummary(job) {
-        const compensation = job.compensation.max_amount
-            ? `${job.compensation.currency} ${job.compensation.min_amount.toLocaleString()} - ${job.compensation.max_amount.toLocaleString()}`
-            : `${job.compensation.currency} ${job.compensation.min_amount.toLocaleString()}`;
-        return `**${job.job.title}** (${job.jobId})
-🏢 ${job.company.name} | 📍 ${job.location.city}, ${job.location.state}
-💰 ${compensation} | ⏰ ${job.job.employment_type}
-📋 Skills: ${job.job.requirements.skills.slice(0, 3).join(', ')}${job.job.requirements.skills.length > 3 ? '...' : ''}`;
-    }
     async getApplicationStatus(applicationId) {
         try {
             const response = await axios_1.default.get(`${this.baseUrl}/api/jobs/applications/${applicationId}`, {
@@ -134,6 +122,65 @@ Job ID: ${job.jobId}
             }
             throw new Error(`Failed to get application status: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
+    }
+    transformMinimalJobData(rawJobs) {
+        return rawJobs.map(entry => {
+            // Safely access nested properties with null checks
+            const job = entry?.job;
+            const jobData = job?.job;
+            const company = job?.company;
+            const location = job?.location;
+            const compensation = job?.compensation;
+            const requirements = jobData?.requirements;
+            return {
+                jobId: job?.jobId || 'N/A',
+                title: jobData?.title || 'Job Title Not Available',
+                description: jobData?.description || 'Job Description Not Available',
+                company: company?.name || 'Company Not Specified',
+                location: this.formatLocation(location),
+                salary: this.formatSalary(compensation),
+                experience: requirements?.experience || 'Not specified',
+                postedAt: jobData?.posted_at || null,
+            };
+        });
+    }
+    formatLocation(location) {
+        if (!location)
+            return 'Location not specified';
+        const city = location.city || '';
+        const state = location.state || '';
+        if (city && state) {
+            return `${city}, ${state}`;
+        }
+        else if (city) {
+            return city;
+        }
+        else if (state) {
+            return state;
+        }
+        else {
+            return 'Location not specified';
+        }
+    }
+    formatSalary(compensation) {
+        if (!compensation)
+            return 'Not specified';
+        const currency = compensation.currency || '₹';
+        const minAmount = compensation.min_amount;
+        const maxAmount = compensation.max_amount;
+        if (!minAmount && !maxAmount) {
+            return 'Not specified';
+        }
+        if (minAmount && maxAmount) {
+            return `${currency}${minAmount.toLocaleString()} - ${currency}${maxAmount.toLocaleString()}`;
+        }
+        else if (minAmount) {
+            return `${currency}${minAmount.toLocaleString()}`;
+        }
+        else if (maxAmount) {
+            return `Up to ${currency}${maxAmount.toLocaleString()}`;
+        }
+        return 'Not specified';
     }
 }
 exports.JobsAPI = JobsAPI;

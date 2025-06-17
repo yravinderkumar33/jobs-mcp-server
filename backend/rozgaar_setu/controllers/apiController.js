@@ -75,7 +75,7 @@ async function getJobDetails(req, res) {
     const { job_id } = req.params;
     
     // Use the database service to find the job
-    const job = await jobService.findOne({ _id: job_id });
+    const job = await jobService.findOne({ jobId: job_id });
     
     if (!job) {
       return res.status(404).json({
@@ -139,7 +139,7 @@ async function applyToJob(req, res) {
     const { job_id } = req.params;
     
     // Check if job exists
-    const jobExists = await jobService.exists({ _id: job_id });
+    const jobExists = await jobService.exists({ jobId: job_id });
     
     if (!jobExists) {
       return res.status(404).json({

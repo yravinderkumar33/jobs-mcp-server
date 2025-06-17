@@ -3,15 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerTools = registerTools;
 const zod_1 = require("zod");
 function registerTools(server, jobsAPI) {
-    // Search Jobs Tool - Main job search functionality
-    server.tool("search-jobs", "Search for all the jobs available in the database", {
-        filters: zod_1.z.object({}).optional(),
-        options: zod_1.z.object({}).optional()
-    }, async ({ filters, options }) => {
+    server.tool("search-jobs", "Search for all the jobs available in the database", {}, async ({}) => {
         try {
-            const searchRequest = { filters: filters || {}, options: options || {} };
+            const searchRequest = { filters: {}, options: {} };
             const response = await jobsAPI.searchJobs(searchRequest);
-            if (response.result.jobs.length === 0) {
+            const jobs = response?.result?.jobs || [];
+            if (jobs.length === 0) {
                 return {
                     content: [{
                             type: "text",
@@ -19,17 +16,19 @@ function registerTools(server, jobsAPI) {
                         }]
                 };
             }
+            const jobData = jobsAPI.transformMinimalJobData(jobs) || [];
             const resultText = `
-      # Job Search Results
+# Job Search Results
 
-Found ${response.result.jobs.length} jobs:
+We have found ${jobData.length} job opportunities for you:
 
-${JSON.stringify(response.result.jobs)}
+${JSON.stringify(jobData, null, 2)}
 ---
-**Tips:**
-- Use \`get-job-details\` tool with a specific Job ID to get full job information
-- Use \`apply-for-job\` tool to submit applications
-- Adjust filters to narrow down results`;
+**Pro Tips:**
+- Utilize the \`get-job-details\` tool with a specific Job ID to access comprehensive job information.
+- Leverage the \`apply-for-job\` tool to submit your applications seamlessly.
+- Fine-tune your search filters to refine and target your job search results effectively.
+`;
             return {
                 content: [{
                         type: "text",
@@ -47,7 +46,6 @@ ${JSON.stringify(response.result.jobs)}
             };
         }
     });
-    // Get Job Details Tool - Detailed view of a specific job
     server.tool("get-job-details", "Get detailed information about a specific job", {
         jobId: zod_1.z.string().describe("The job ID to get detailed information for")
     }, async ({ jobId }) => {
@@ -55,13 +53,13 @@ ${JSON.stringify(response.result.jobs)}
             // Get job details
             const response = await jobsAPI.getJob(jobId);
             const job = response.result.job;
-            const jobDetails = jobsAPI.formatJobForDisplay(job);
+            // const jobDetails = jobsAPI.formatJobForDisplay(job);
             return {
                 content: [{
                         type: "text",
                         text: `# Job Details
 
-${jobDetails}
+${JSON.stringify(job, null, 2)}
 
 **Next Steps:**
 - Use \`apply-for-job\` tool with this Job ID to submit an application
@@ -79,7 +77,6 @@ ${jobDetails}
             };
         }
     });
-    // Apply for Job Tool - Submit job application
     server.tool("apply-for-job", "Apply for a specific job", {
         jobId: zod_1.z.string().describe("The job ID to apply for"),
         applicant: zod_1.z.object({
@@ -89,13 +86,11 @@ ${jobDetails}
         }).describe("Applicant details")
     }, async ({ jobId, applicant }) => {
         try {
-            // Prepare application data
             const application = {
                 job_id: jobId,
                 applicant,
                 status: "PENDING"
             };
-            // Submit application
             const response = await jobsAPI.applyForJob(jobId, application);
             const successMessage = `# Application Submitted Successfully! ✅
 

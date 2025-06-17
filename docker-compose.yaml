@@ -56,48 +56,46 @@ services:
     env_file:
       - ./envs/rozgaar_setu.env
 
-  # transformation-engine:
-  #   build: ./transformation-engine
-  #   environment:
-  #     - MONGO_URI=mongodb://mongo:27017/mcp
-  #     - OPENAI_API_KEY=OPENAI_API_KEY
-  #     - COMPANY_A_URL=http://backend-a:3000/api/jobs/search
-  #     - COMPANY_B_URL=http://backend-b:4000/api/jobs/search
-  #   depends_on:
-  #     - mongo
-  #     - mongo-express
-  #     - backend-a
-  #     - backend-b
-  #   command: ["npm", "run", "dev"]
+  transformation-engine:
+    build: ./transformation-engine
+    env_file:
+      - ./envs/mcp_server.env
+    depends_on:
+      - mongo
+      - mongo-express
+      - backend-rozgaar_setu
+      - backend-yadav_consulting
+    command: ["npm", "run", "transform"]
 
-  # mcp-backend:
-  #   build: ./mcp/backend
-  #   ports:
-  #     - 6000:6000
-  #   depends_on:
-  #     - transformation-engine
-  #   environment:
-  #     - PORT=6000
-  #     - MONGO_URI=mongodb://mongo:27017/mcp
-  #     - company_a_url=http://backend-a:3000
-  #     - company_b_url=http://backend-b:4000
+  mcp-backend:
+    build: ./transformation-engine
+    env_file:
+      - ./envs/mcp_server.env
+    ports:
+      - 6000:6000
+    depends_on:
+      - mongo
+      - mongo-express
+      - backend-rozgaar_setu
+      - backend-yadav_consulting
+    command: ["npm", "run", "dev"]
 
-  # frontend_company_a:
-  #   build: ./company/frontend/company-a/blue-collar-careers-main
-  #   container_name: frontend-company-a
-  #   ports:
-  #     - 8080:8080
-  #   environment:
-  #     - VITE_API_URL=http://localhost:3000/api
-  #   depends_on:
-  #     - backend-a
+  frontend_company_a:
+    build: ./company/frontend/company-a/blue-collar-careers-main
+    container_name: frontend-company-a
+    ports:
+      - 8080:8080
+    environment:
+      - VITE_API_URL=http://localhost:3000/api
+    depends_on:
+      - backend-a
 
-  # frontend_company_b:
-  #   build: ./company/frontend/company-b/dark-hued-careers-portal
-  #   container_name: frontend-company-b
-  #   ports:
-  #     - 8082:8080
-  #   environment:
-  #     - VITE_API_URL=http://localhost:4000/api
-  #   depends_on:
-  #     - backend-b
+  frontend_company_b:
+    build: ./company/frontend/company-b/dark-hued-careers-portal
+    container_name: frontend-company-b
+    ports:
+      - 8082:8080
+    environment:
+      - VITE_API_URL=http://localhost:4000/api
+    depends_on:
+      - backend-b

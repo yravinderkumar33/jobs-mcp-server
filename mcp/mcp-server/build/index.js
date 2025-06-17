@@ -28,7 +28,7 @@ async function main() {
     console.error("✓ Prompts registered");
     // Connect to stdio transport
     const transport = new stdio_js_1.StdioServerTransport();
-    console.error("Starting Blue-Collar Jobs MCP Server...");
+    console.error("Starting MCP Server...");
     console.error("Server capabilities:");
     console.error("- Resources: API status, job listings, job categories");
     console.error("- Tools: search-jobs, get-job-details, apply-for-job, job-application-guide");

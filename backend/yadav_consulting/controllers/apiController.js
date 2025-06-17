@@ -55,7 +55,7 @@ async function getJobDetails(req, res) {
   try {
     const jobService = new DatabaseService(Job);
     const { job_id } = req.params;
-    const job = await jobService.findOne({ _id: job_id });
+    const job = await jobService.findOne({ jobId: job_id });
 
     res.json({
       id: req.operation.operationId,
@@ -66,7 +66,6 @@ async function getJobDetails(req, res) {
     });
 
   } catch (error) {
-
     res.status(500).json({
       id: req.operation.operationId,
       error: error.message,
