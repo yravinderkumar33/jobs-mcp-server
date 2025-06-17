@@ -56,16 +56,16 @@ services:
     env_file:
       - ./envs/rozgaar_setu.env
 
-  # transformation-engine:
-  #   build: ./transformation-engine
-  #   env_file:
-  #     - ./envs/mcp_server.env
-  #   depends_on:
-  #     - mongo
-  #     - mongo-express
-  #     - backend-rozgaar_setu
-  #     - backend-yadav_consulting
-  #   command: ["npm", "run", "transform"]
+  transformation-engine:
+    build: ./transformation-engine
+    env_file:
+      - ./envs/mcp_server.env
+    depends_on:
+      - mongo
+      - mongo-express
+      - backend-rozgaar_setu
+      - backend-yadav_consulting
+    command: ["npm", "run", "transform"]
 
   mcp-backend:
     build: ./transformation-engine
