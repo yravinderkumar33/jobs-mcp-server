@@ -30,6 +30,20 @@ export class GenericJobProviderAdapter extends BaseJobProviderAdapter {
         }
     }
 
+    async getJobApplicationStatus(context: any): Promise<any> {
+        try {
+            const { applicationId } = context;
+            const url = this.config.applicationStatus.api.url.replace('{applicationId}', applicationId);
+            console.log("application_url", url)
+            const response = await axios.get(url);
+            return response.data;
+
+        } catch (error) {
+            console.error(`❌ Error applying to job from ${this.config.name || this.providerId}:`);
+            throw error;
+        }
+    }
+
     async applyToJob(context: any): Promise<any> {
         try {
             console.log(context)

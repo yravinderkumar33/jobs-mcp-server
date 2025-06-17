@@ -256,9 +256,41 @@ async function getAllApplications(req, res) {
   }
 }
 
+async function fetchApplicationById(req, res) {
+  try {
+    const applicationService = new DatabaseService(Application);
+    const { application_id } = req.params;
+    const application = await applicationService.findOne({ application_id: application_id });
+
+    if (!application) {
+      return res.status(404).json({
+        id: req.operation.operationId,
+        error: 'Application not found',
+        result: null
+      });
+    }
+
+    res.json({
+      id: req.operation.operationId,
+      error: null,
+      result: {
+        application
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      id: req.operation.operationId,
+      error: error.message,
+      result: null
+    });
+  }
+}
+
 module.exports = {
   searchJobs,
   getJobDetails,
   applyToJob,
-  getAllApplications
+  getAllApplications,
+  fetchApplicationById
 };

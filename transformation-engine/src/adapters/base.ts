@@ -13,4 +13,5 @@ export abstract class BaseJobProviderAdapter implements JobProviderAdapter {
     abstract searchJobs(params?: Record<string, any>): Promise<NormalizedJob[]>;
     abstract normalizeJob(jobs: Record<string, any>[]): Promise<NormalizedJob[]>;
     abstract applyToJob(context: any): Promise<any>;
+    abstract getJobApplicationStatus(context: any): Promise<any>;
 }

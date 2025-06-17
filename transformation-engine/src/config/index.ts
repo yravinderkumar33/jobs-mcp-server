@@ -288,6 +288,15 @@ const config = {
             "Content-Type": "application/json"
           }
         }
+      },
+      applicationStatus: {
+        api: {
+          url: process.env.YADAV_CONSULTING_URL + "/applications/{applicationId}",
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
       }
     },
     {
@@ -551,6 +560,15 @@ const config = {
         api: {
           url: process.env.ROZGAAR_SETU_URL + "/api/jobs/{jobId}/apply",
           method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      applicationStatus: {
+        api: {
+          url: process.env.ROZGAAR_SETU_URL + "/api/jobs/applications/{applicationId}",
+          method: "GET",
           headers: {
             "Content-Type": "application/json"
           }

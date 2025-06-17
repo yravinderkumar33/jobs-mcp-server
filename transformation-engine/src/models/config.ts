@@ -7,6 +7,7 @@ export interface CompanyConfig {
     metadata?: Record<string, any>;
     search: SearchConfig;
     apply: Record<string, any>;
+    applicationStatus: Record<string, any>;
 }
 
 export interface SearchConfig {

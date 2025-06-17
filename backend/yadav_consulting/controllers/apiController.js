@@ -9,6 +9,8 @@
 const Job = require('../models/Job');
 const Application = require('../models/Application');
 const DatabaseService = require('../services/databaseService');
+const { v4: uuidv4 } = require('uuid');
+
 
 /**
  * Query jobs with filters
@@ -102,6 +104,7 @@ async function applyToJob(req, res) {
       gender,
       phone,
       address,
+      "application_id": uuidv4(),
       "status": "PENDING"
     });
 
@@ -130,7 +133,6 @@ async function applyToJob(req, res) {
  */
 async function getAllApplications(req, res) {
   try {
-
     const applicationService = new DatabaseService(Application);
     const applications = await applicationService.search({}, {});
     res.json({
@@ -149,9 +151,41 @@ async function getAllApplications(req, res) {
   }
 }
 
+async function fetchApplicationById(req, res) {
+  try {
+    const applicationService = new DatabaseService(Application);
+    const { application_id } = req.params;
+    const application = await applicationService.findOne({ application_id: application_id });
+
+    if (!application) {
+      return res.status(404).json({
+        id: req.operation.operationId,
+        error: 'Application not found',
+        result: null
+      });
+    }
+
+    res.json({
+      id: req.operation.operationId,
+      error: null,
+      result: {
+        application
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      id: req.operation.operationId,
+      error: error.message,
+      result: null
+    });
+  }
+}
+
 module.exports = {
   searchJobs,
   getJobDetails,
   applyToJob,
-  getAllApplications
+  getAllApplications,
+  fetchApplicationById
 };

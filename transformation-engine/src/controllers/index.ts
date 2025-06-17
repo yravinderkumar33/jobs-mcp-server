@@ -6,8 +6,6 @@ import { AdapterFactory, BaseJobProviderAdapter } from '../adapters';
 import configuration from '../config';
 import mongoose from 'mongoose';
 
-
-
 export class Controller {
 
   private static adapters: Map<string, BaseJobProviderAdapter> = AdapterFactory.createAllAdapters(configuration.companies);
@@ -55,9 +53,59 @@ export class Controller {
     }
   }
 
+  private static async fetchJobsV2(ctx: any = {}): Promise<any[]> {
+    const { filters = {}, options = {}, projections = {} } = ctx;
+    console.log('fetchJobs called with filters:', JSON.stringify(filters));
+
+    try {
+      const jobToCategoryMapping = await JobToCategoryMappingSchema.find({}, {}, {});
+      console.log(`Found ${jobToCategoryMapping.length} jobToCategoryMapping records`);
+
+      const jobs = [];
+
+      for (const payload of jobToCategoryMapping) {
+        try {
+          const category = payload.category;
+          console.log(`Processing job with category: ${category}, jobId: ${payload.jobId}`);
+
+          const model = getJobModel(category);
+
+          const cloneFilters = { ...filters };
+
+          delete cloneFilters.jobId;
+
+          const job = await model.findOne({ jobId: payload.jobId, ...cloneFilters }).lean();
+
+          if (job) {
+            jobs.push({
+              category: category,
+              jobId: payload.jobId,
+              job: job,
+              source_id: payload.source_id,
+            });
+            console.log(`Successfully found job for jobId: ${payload.jobId}`);
+          } else {
+            console.warn(`Job not found in ${category} collection for jobId: ${payload.jobId}`);
+          }
+        } catch (jobError) {
+          console.error(`Error processing job category ${payload.category} with jobId ${payload.jobId}:`, jobError);
+        }
+      }
+
+      console.log(`fetchJobs returning ${jobs.length} jobs`);
+      return jobs;
+    } catch (error) {
+      console.error('Error in fetchJobs:', error);
+      throw error;
+    }
+  }
+
   static async searchJobs(req: Request, res: Response): Promise<void> {
     try {
-      const jobs = await Controller.fetchJobs();
+      const { filters = {}, options = {}, projections = {} } = req.body;
+      console.log('searchJobs called with filters:', JSON.stringify(filters));
+
+      const jobs = await Controller.fetchJobsV2({ filters, options, projections });
 
       res.json({
         error: null,
@@ -186,11 +234,42 @@ export class Controller {
 
   static async getJobApplications(req: Request, res: Response): Promise<void> {
     try {
-      res.json({
-        message: 'Jobs',
-        timestamp: new Date().toISOString(),
-        version: '1.0.0'
-      });
+
+      const { jobId, applicationId } = req.params;
+
+      if (!jobId) {
+        res.status(400).json({
+          error: 'Job ID is required',
+          result: null
+        });
+        return;
+      }
+
+      const jobs = await Controller.fetchJobs({ filters: { jobId: jobId } });
+
+      if (jobs.length === 0) {
+        res.status(404).json({
+          error: 'Job not found',
+          result: null
+        });
+        return;
+      }
+
+      const job = jobs[0];
+
+      const adapter = Controller.adapters.get(job.source_id);
+
+      if (!adapter) {
+        res.status(404).json({
+          error: 'Adapter not found',
+          result: null
+        });
+        return;
+      }
+
+      const response = await adapter.getJobApplicationStatus({ applicationId: applicationId });
+      res.json(response);
+      
     } catch (error) {
       res.status(500).json({
         error: 'Internal Server Error',
@@ -198,5 +277,4 @@ export class Controller {
       });
     }
   }
-
 } 

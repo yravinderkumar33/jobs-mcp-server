@@ -153,6 +153,25 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /applications/{application_id}:
+      get:
+        summary: Retrieve an application
+        operationId: fetchApplicationById
+        tags: [Applications]
+        parameters:
+          - name: application_id
+            in: path
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: Application details retrieved
+          '404':
+            description: Application details not found
+          '500':
+            description: Internal error
+
 components:
   responses:
     NotFound:
